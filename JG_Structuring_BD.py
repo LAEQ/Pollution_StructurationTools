@@ -197,6 +197,7 @@ class PollutionBD(object) :
                                 Datas = self.Request(int(Row["TIME"]))
                                 Datas.update(Row)
                                 Datas["DATETIME"] = datetime.datetime.fromtimestamp(Row["TIME"]).strftime('%Y-%m-%d %H:%M:%S')
+                                Datas["TIME"] = Row["TIME"]
             #                    print(Datas)
             #                    print([F.Name for F in Fields])
             #                    print([FieldConverter[F.Type] for F in Fields])
