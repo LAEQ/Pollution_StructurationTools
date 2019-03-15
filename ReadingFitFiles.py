@@ -34,9 +34,16 @@ def ExtractRecords(Generator) :
     Records = []
     Rejected = set(["hardware_version","sport","product","event_type","garmin_product"])
     for Record in Generator : 
+        Record = {Field.name:Record.get_value(Field.name) for Field in Record.fields}
         Keys = set(Record.keys())
         if len(Rejected.intersection(Keys))==0 :
-            Records.append(Record)
+            #verifier que l'on a pas que des unknow
+            Nbknow = 0
+            for Key in Keys : 
+                if "unknown" not in Key : 
+                    Nbknow+=1
+            if Nbknow>0 :
+                Records.append(Record)
     return Records
 
 ## Fonction pour obtenir une table de donnees a partir d'un fichier .fit
@@ -44,7 +51,7 @@ def FitToDataTable(MyFile,Fields) :
     File = FitFile(MyFile)
     File.parse()
     ##obtention des enregistrements
-    Values = File.get_records_as_dicts()
+    Values = File.get_messages()
     ##iteration sur les header inutiles jusqu'a l'annonce du fichier cycling
     Records = ExtractRecords(Values)
 #    Continue = True
@@ -74,20 +81,26 @@ def FitToDataTable(MyFile,Fields) :
 #        if Record.has_key("event_type") == False : 
 #            #sauter les evenements indiquant le 5km
 #            #transformer le timestamp moche en un beau chiffre
-        print(Record)
-        TIME = time.mktime(Record["timestamp"].timetuple()) + (Config["FitFile"]["Decalage"]*60*60)
+        TIME = time.mktime(Record["timestamp"].timetuple()) + (Config["FitFile"]["Decalage"]*60)
+        #TIME = Record["timestamp"] + (Config["FitFile"]["Decalage"]*60*60)
         Record["timestamp"] = int(TIME)
         #print(Fields)
         #try :
         Row = []
         NoMissing=True
         for Field in Fields : 
-            if Record.has_key(Field.RealName)== False : 
+            if Field.RealName not in Record : 
                 Row.append(Field.Default)
-                print("          Missing this Field : "+Field.RealName)
+                #print("          Missing this Field : "+Field.RealName)
                 NoMissing=False
             else : 
-                Row.append(Record[Field.RealName])
+                try :
+                    Row.append(Record[Field.RealName])
+                except KeyError as e  : 
+                    print("This Key is missing : "+Field.RealName)
+                    print(Record)
+                    raise e
+                    
         #Row = list((Record[Field.RealName] for Field in Fields))
 #            except : 
 #                print("Error : ")

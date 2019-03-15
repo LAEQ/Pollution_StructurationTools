@@ -137,7 +137,12 @@ class PollutionBD(object) :
                 Data = [Row[ID] for ID in Indexes]
                 StrData = "("+self.__PrepData(Data,Table)+")"
                 Req = "INSERT INTO "+Table["Name"]+" "+StrFields+" VALUES "+StrData
-                Cursor.execute(Req)
+                try :
+                    Cursor.execute(Req)
+                except : 
+                    print("Error with this request")
+                    print(Req)
+                    raise ValueError()
                 Line = CSV.readline()
             BD.commit()
         else :
@@ -153,7 +158,7 @@ class PollutionBD(object) :
             if Table["Recording"] == "MIN" : 
                 Req = "SELECT "+StrFields+" FROM "+Table["Name"]+" WHERE TIME<"+str(Time+60)+" AND TIME>="+str(Time)
             elif Table["Recording"] == "SEC" : 
-                Req = "SELECT "+StrFields+" FROM "+Table["Name"]+" WHERE TIME = "+str(Time)
+                Req = "SELECT "+StrFields+" FROM "+Table["Name"]+" WHERE TIME = "+str(int(Time))
             Rep = Cursor.execute(Req)
             Datas = Rep.fetchone()
             if Datas is None :
@@ -175,7 +180,6 @@ class PollutionBD(object) :
         SpatialRef = osr.SpatialReference()
         SpatialRef.ImportFromEPSG(4326)
         Fields = self.AllFields()
-        
         #iteration sur les fichiers fit
         for File in os.listdir(self.Root) :
             if "." in File :
@@ -191,13 +195,14 @@ class PollutionBD(object) :
                             Shp.MakeItEmpty({"SpatialRef":SpatialRef,"Fields":[F.Name for F in Fields],"FieldsTypes":[FieldConverter[F.Type] for F in Fields]})
                             #remplissage du shp
                             for Row in FitTable.Iterate(True) :
-                                print("     Iterating on time : "+datetime.datetime.fromtimestamp(Row["TIME"]).strftime('%Y-%m-%d %H:%M:%S'))
+                                print("     Iterating on time : "+datetime.datetime.fromtimestamp(Row["TIME"]).strftime('%Y-%m-%d %H:%M:%S')+" : "+str(Row["TIME"]))
                                 Pt = ogr.Geometry(ogr.wkbPoint)
+                                T = Row["TIME"]
                                 Pt.AddPoint(garmin.degrees(Row["Lon"]),garmin.degrees(Row["Lat"]))
                                 Datas = self.Request(int(Row["TIME"]))
                                 Datas.update(Row)
+                                Datas["TIME"] = T
                                 Datas["DATETIME"] = datetime.datetime.fromtimestamp(Row["TIME"]).strftime('%Y-%m-%d %H:%M:%S')
-                                Datas["TIME"] = Row["TIME"]
             #                    print(Datas)
             #                    print([F.Name for F in Fields])
             #                    print([FieldConverter[F.Type] for F in Fields])
@@ -205,7 +210,6 @@ class PollutionBD(object) :
                             #enregistrement du shp
                             Shp.Save(self.Root+"/Shps/"+Name+".shp")
                             print("\a")
-                        
     def EvaluateShps(self) : 
         """Methode pour verifier la qualite des donnees enregistrees dans les shapefiles
         """

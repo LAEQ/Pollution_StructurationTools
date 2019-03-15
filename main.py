@@ -5,14 +5,14 @@ Created on Wed Mar 07 14:15:16 2018
 @author: GelbJ
 """
 
-Racine = "G:/___NewZeland/__Auckland/A)_FieldData"
+Racine = "F:/Datas/_Lyon/A)_FieldData"
 
 ######################################################
 ### Config Steph
 ######################################################
 #Users = ["ID1_PA"]
-#Users=["ID2_EL"]
-Users=["ID3_JG"]
+Users=["ID2_EL"]
+#Users=["ID3_VJ"]
 
 
 Avoid=[]
@@ -36,7 +36,8 @@ for User in Users :
     #creation de la BD SQLITE
     BD.Fill()
     #Generation des fichiers SHP
-    #Avoid = []
+    Avoid = ["ID3_VJ_2019-02-25_TRAJET03",#pas de gps...
+             ]
     BD.GenerateShps(Avoid = Avoid)
     BD.EvaluateShps()
     BD.PrepareTimeExcel()

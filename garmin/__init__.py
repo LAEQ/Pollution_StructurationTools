@@ -151,7 +151,7 @@ class L000:
             tp, data = self.readPacket()
 
         if tp != ptype:
-            raise LinkException, "Expected msg type %d, got %d" % (ptype, tp)
+            raise ValueError("Expected msg type %d, got %d" % (ptype, tp))
 
         return data
 
@@ -484,7 +484,7 @@ class MultiTransferProtocol(TransferProtocol):
                 try:
                     index = data_pids.index(tp) + 1
                 except ValueError:
-                    raise ProtocolException, "Expected header or point"
+                    raise ValueError("Expected header or point")
 
             p = self.datatypes[index]()
             p.unpack(data)
@@ -896,11 +896,11 @@ class DataPoint:
             bits = struct.unpack(self.fmt, bytes)
             for i in range(len(self.parts)):
                 self.__dict__[self.parts[i]] = bits[i]
-        except Exception, e:
-            print e
-            print "Format: <" + self.fmt   + ">"
-            print "Parts:  <" + ", ".join(self.parts) + ">"
-            print "Input:  <" + "><".join(bytes) + ">"
+        except Exception as e:
+            print(e)
+            print("Format: <" + self.fmt   + ">")
+            print("Parts:  <" + ", ".join(self.parts) + ">")
+            print("Input:  <" + "><".join(bytes) + ">")
             raise
 
 
@@ -911,15 +911,15 @@ class DataPoint:
 # coordinates. Here's the conversion:
 
 def degrees(semi):
-    return semi * 180.0 / (1L<<31)
+    return semi * 180.0 / (1<<31)
 
 
 def semi(deg):
-    return long(deg * ((1L<<31) / 180))
+    return long(deg * ((1<<31) / 180))
 
 
 def radian(semi):
-    return semi * math.pi / (1L<<31)
+    return semi * math.pi / (1<<31)
 
 
 # Distance between two waypoints (in metres)
@@ -946,12 +946,12 @@ class Waypoint(DataPoint):
     parts = ("ident", "slat", "slon", "unused", "cmnt")
     fmt = "< 6s l l L 40s"
 
-    def __init__(self, ident="", slat=0L, slon=0L, cmnt=""):
+    def __init__(self, ident="", slat=0, slon=0, cmnt=""):
         self.ident = ident         # text identidier (upper case)
         self.slat = slat           # lat & long in semicircle terms
         self.slon = slon
         self.cmnt = cmnt           # comment (must be upper case)
-        self.unused = 0L
+        self.unused = 0
 
     def __repr__(self):
         return "<Waypoint %s (%3.5f, %3.5f) (at %i)>" % (self.ident,
@@ -985,12 +985,12 @@ class D101(Waypoint):
     dst = 0.0                  # proximity distance (m)
     smbl = 0                   # symbol_type id (0-255)
 
-    def __init__(self, ident="", slat=0L, slon=0L, cmnt="", dst=0L, smbl=0L):
+    def __init__(self, ident="", slat=0, slon=0, cmnt="", dst=0, smbl=0):
         self.ident = ident         # text identidier (upper case)
         self.slat = slat           # lat & long in semicircle terms
         self.slon = slon
         self.cmnt = cmnt           # comment (must be upper case)
-        self.unused = 0L
+        self.unused = 0
         self.dst = dst
         self.smbl = smbl
         self.data = {}
@@ -1024,12 +1024,12 @@ class D102(Waypoint):
     dst = 0.0                  # proximity distance (m)
     smbl = 0                   # symbol_type id
 
-    def __init__(self, ident="", slat=0L, slon=0L, cmnt="", dst=0L, smbl=0L):
+    def __init__(self, ident="", slat=0, slon=0, cmnt="", dst=0, smbl=0):
         self.ident = ident         # text identidier (upper case)
         self.slat = slat           # lat & long in semicircle terms
         self.slon = slon
         self.cmnt = cmnt           # comment (must be upper case)
-        self.unused = 0L
+        self.unused = 0
         self.dst = dst
         self.smbl = smbl
         self.data = {}
@@ -1063,12 +1063,12 @@ class D103(Waypoint):
     smbl = 0                   # D103 symbol id
     dspl = 0                   # D103 display option
 
-    def __init__(self, ident="", slat=0L, slon=0L, cmnt="", dspl=0L, smbl=0L):
+    def __init__(self, ident="", slat=0, slon=0, cmnt="", dspl=0, smbl=0):
         self.ident = ident         # text identidier (upper case)
         self.slat = slat           # lat & long in semicircle terms
         self.slon = slon
         self.cmnt = cmnt           # comment (must be upper case)
-        self.unused = 0L
+        self.unused = 0
         self.dspl = dspl
         self.smbl = smbl
         self.data = {}
@@ -1103,13 +1103,13 @@ class D104(Waypoint):
     smbl = 0                   # symbol_type id
     dspl = 0                   # D104 display option
 
-    def __init__(self, ident="", slat=0L, slon=0L, cmnt="",
-                 dst=0L, smbl=0L, dspl=0L):
+    def __init__(self, ident="", slat=0, slon=0, cmnt="",
+                 dst=0, smbl=0, dspl=0):
         self.ident = ident         # text identidier (upper case)
         self.slat = slat           # lat & long in semicircle terms
         self.slon = slon
         self.cmnt = cmnt           # comment (must be upper case)
-        self.unused = 0L
+        self.unused = 0
         self.dst = dst             # proximity distance (m)
         self.smbl = smbl           # symbol_type id
         self.dspl = dspl           # D104 display option
@@ -1143,11 +1143,11 @@ class D105(Waypoint):
     fmt = "<l l h s"
     smbl = 0
 
-    def __init__(self, ident="", slat=0L, slon=0L, smbl=0L):
+    def __init__(self, ident="", slat=0, slon=0, smbl=0):
         self.ident = ident         # text identidier (upper case)
         self.slat = slat           # lat & long in semicircle terms
         self.slon = slon
-        self.unused = 0L
+        self.unused = 0
         self.smbl = smbl
 
     def __repr__(self):
@@ -1180,13 +1180,13 @@ class D106(Waypoint):
     smbl = 0
     lnk_ident = ""
 
-    def __init__(self, ident="", slat=0L, slon=0L, subclass="",
-                 wpt_class=0L, lnk_ident="", smbl=0L):
+    def __init__(self, ident="", slat=0, slon=0, subclass="",
+                 wpt_class=0, lnk_ident="", smbl=0):
         self.ident = ident         # text identidier (upper case)
         self.slat = slat           # lat & long in semicircle terms
         self.slon = slon
         self.wpt_class = wpt_class
-        self.unused = 0L
+        self.unused = 0
         self.subclass = subclass
         self.lnk_ident = lnk_ident
         self.smbl = smbl
@@ -1223,13 +1223,13 @@ class D107(Waypoint):
     dst = 0.0
     color = 0
 
-    def __init__(self, ident="", slat=0L, slon=0L, cmnt="",
-                 dst=0L, smbl=0L, dspl=0L, color=0L):
+    def __init__(self, ident="", slat=0, slon=0, cmnt="",
+                 dst=0, smbl=0, dspl=0, color=0):
         self.ident = ident         # text identidier (upper case)
         self.slat = slat           # lat & long in semicircle terms
         self.slon = slon
         self.cmnt = cmnt           # comment (must be upper case)
-        self.unused = 0L
+        self.unused = 0
         self.dst = dst             # proximity distance (m)
         self.smbl = smbl           # symbol_type id
         self.dspl = dspl           # D107 display option
@@ -1282,13 +1282,13 @@ class D108(Waypoint):
     addr = ""
     cross_road = ""
 
-    def __init__(self, ident="", slat=0L, slon=0L, alt=1.0e25, dpth=1.0e25,
-                 cmnt="", subclass="", wpt_class=0L, lnk_ident="", smbl=18L):
+    def __init__(self, ident="", slat=0, slon=0, alt=1.0e25, dpth=1.0e25,
+                 cmnt="", subclass="", wpt_class=0, lnk_ident="", smbl=18):
         self.ident = ident         # text identifier (upper case)
         self.slat = slat           # lat & long in semicircle terms
         self.slon = slon
         self.wpt_class = wpt_class
-        self.unused = 0L
+        self.unused = 0
         self.subclass = subclass
         self.lnk_ident = lnk_ident
         self.smbl = smbl
@@ -1332,13 +1332,13 @@ class D109(Waypoint):
     addr = ""
     cross_road = ""
 
-    def __init__(self, ident="", slat=0L, slon=0L, alt=1.0e25, dpth=1.0e25,
-                 cmnt="", subclass="", wpt_class=0L, lnk_ident="", smbl=18L):
+    def __init__(self, ident="", slat=0, slon=0, alt=1.0e25, dpth=1.0e25,
+                 cmnt="", subclass="", wpt_class=0, lnk_ident="", smbl=18):
         self.ident = ident
         self.slat = slat
         self.slon = slon
         self.wpt_class = wpt_class
-        self.unused = 0L
+        self.unused = 0
         self.subclass = subclass
         self.lnk_ident = lnk_ident
         self.smbl = smbl
@@ -1499,9 +1499,9 @@ class D210(RouteLink):
 
 class TrackPoint(DataPoint):
 
-    slat = 0L
-    slon = 0L
-    time = 0L # secs since midnight 31/12/89?
+    slat = 0
+    slon = 0
+    time = 0 # secs since midnight 31/12/89?
 
     def __repr__(self):
         return "<Trackpoint (%3.5f, %3.5f) %s (at %i)>" % (
@@ -1985,7 +1985,7 @@ class SerialLink(P000):
         dle = self.read(1)
         # Find the start of a message
         while dle != self.DLE:
-            print "resync - expected DLE and got something else: %r" % dle
+            print("resync - expected DLE and got something else: %r" % dle)
             dle = self.read(1)
         # We've now found either the start or the end of a msg
         # Try reading the type.
@@ -2003,7 +2003,8 @@ class SerialLink(P000):
             data = data + self.readEscapedByte()
         ck = self.readEscapedByte()
         if ck != self.checksum(tp + ld + data):
-            raise LinkException, "Invalid checksum"
+            print("Invalid checksum")
+            raise LinkException
         eom = self.read(2)
         assert eom==self.EOM, "Invalid EOM seen"
         if sendAck:
@@ -2015,7 +2016,8 @@ class SerialLink(P000):
         log.debug("(>ack)")
         tp, data = self.readPacket(0)
         if (tp & 0xff) != self.Pid_Ack_Byte or ord(data[0]) != ptype:
-            raise LinkException, "Acknowledge error"
+            print("Acknowledge error")
+            raise LinkException
 
     def sendAcknowledge(self, ptype):
         log.debug("(<ack)")
@@ -2095,7 +2097,7 @@ class USBLink:
 
         try:
             self.startSession()
-        except usb.USBError, error:
+        except usb.USBError as error:
             if error.message == "No error":
                 # I'm not sure why we get a "No error" error something,
                 # but I suspect the device wasn't in a good state.
@@ -2213,7 +2215,7 @@ class Garmin:
             self.protocols = protocol.getProtocols()
             self.protos , self.protocols_unknown = protocol.FormatA001()
 
-        except LinkException, e:
+        except LinkException as e:
 
             log.log(VERBOSE, "PCP not supported")
 
@@ -2222,7 +2224,8 @@ class Garmin:
                     self.prod_id, self.soft_ver)
                 self.protos , self.protocols_unknown = protocol.FormatA001()
             except KeyError:
-                raise Exception, "Couldn't determine product capabilities"
+                print("Couldn't determine product capabilities")
+                raise Exception
 
         physicalLayer.settimeout(5)
 
@@ -2359,29 +2362,29 @@ def MyCallbackgetWaypoints(waypoint,recordnumber,totalWaypointsToGet,tp):
     # tp is the commando to send/get from the gps, look at the docs (Garmin GPS Interface Specification)
     # pag 9,10 or 4.2 L001 and L002 link Protocol
 
-    print "---  waypoint ", " %s / %s " % (recordnumber,totalWaypointsToGet), "---"
+    print("---  waypoint ", " %s / %s " % (recordnumber,totalWaypointsToGet))
 
-    print "str output --> ",waypoint # or repr(waypoint)
-    print
+    print("str output --> "+repr(waypoint)) # or repr(waypoint)
+    print("")
 
     if recordnumber != totalWaypointsToGet:
-        print "directory output : --> ", waypoint.getDict() # or waypoint.dataDict
+        print ("directory output : --> "+repr(waypoint.getDict())) # or waypoint.dataDict
     else:
-        print
-        print "This is the last waypoint :"
-        print
+        print("")
+        print ("This is the last waypoint :")
+        print("")
 
         for x in waypoint.dataDict:
-            print x, " --> ",waypoint.dataDict[x]
+            print(repr(x) + " --> "+ repr(waypoint.dataDict[x]))
 
-    print "Commando :",tp
-    print
+    print("Commando :",+repr(tp))
+    print("")
 
 
 def MyCallbackputWaypoints(waypoint,recordnumber,totalWaypointsToSend,tp):
     # we get a tuple waypoint,recordnumber,totalWaypointsToSend,tp
 
-    print "waypoint %s added to gps (total waypoint(s) : %s/%s) waypoint command : %s" % (waypoint.dataDict['ident'],recordnumber,totalWaypointsToSend,tp)
+    print ("waypoint %s added to gps (total waypoint(s) : %s/%s) waypoint command : %s" % (waypoint.dataDict['ident'],recordnumber,totalWaypointsToSend,tp))
 
 
 def MyCallbackgetRoutes(point,recordnumber,totalpointsToGet,tp):
@@ -2389,70 +2392,70 @@ def MyCallbackgetRoutes(point,recordnumber,totalpointsToGet,tp):
     #print point.__class__
 
     if isinstance(point,(RouteHdr)):
-        print "Route : ", point
+        print ("Route : "+repr(point))
 
     # I really don't want the D210_Rte_Link_Type
 
     elif not isinstance(point,RouteLink):
 
         if recordnumber != totalpointsToGet:
-            print "   ", point
+            print ("   "+repr(point))
         else:
-            print
-            print "This is the last waypoint of a route:"
+            print("")
+            print("This is the last waypoint of a route:")
 
             for x in point.dataDict: # or point.getDict()
-                print x, " --> ",point.dataDict[x]
+                print(repr(x)+" --> "+repr(point.dataDict[x]))
 
 
 def MyCallbackputRoutes(point,recordnumber,totalPointsToSend,tp):
 
     if isinstance(point,RouteHdr):
-        print
-        print "Adding route :",point
+        print("")
+        print("Adding route :",point)
     elif not isinstance(point,RouteLink):
-        print "   waypoint added",point.dataDict['ident']
+        print("   waypoint added"+repr(point.dataDict['ident']))
 
 
 def MyCallbackgetTracks(point,recordnumber,totalPointsToGet,tp):
 
     if isinstance(point,TrackHdr):
-        print "Track :",point
+        print("Track :"+repr(point))
     else:
 
         if recordnumber != totalPointsToGet:
 
-            print "   ",point,
+            print ("   "+repr(point))
 
             if point.dataDict['new_trk'] == True:
-                print "(New track segment)",
+                print("(New track segment)")
 
-            print
+            print("")
 
         else:
-            print
-            print "This is the last waypoint of a track:"
+            print("")
+            print("This is the last waypoint of a track:")
 
             for x in point.dataDict:
-                print x, " --> ",point.dataDict[x]
+                print(repr(x)+" --> "+repr(point.dataDict[x]))
 
-            print "Time are the seconds since midnight 31/12/89 and are only correct for the ACTIVE LOG !! (hmmm...)"
+            print("Time are the seconds since midnight 31/12/89 and are only correct for the ACTIVE LOG !! (hmmm...)")
 
 
 def MyCallbackputTracks(point,recordnumber,totalPointsToSend,tp):
 
     if isinstance(point,TrackHdr):
-        print "Track :", point
+        print("Track :"+repr(point))
     else:
-        print "   ", point.dataDict
+        print("   " + repr(point.dataDict))
 
 
 def MyCallbackgetAlmanac(satellite,recordnumber,totalPointsToGet,tp):
 
-    print
+    print("")
 
     for x in satellite.dataDict:
-        print "%7s --> %s" % (x,satellite.dataDict[x])
+        print("%7s --> %s" % (x,satellite.dataDict[x]))
 
 
 # =================================================================
@@ -2474,21 +2477,21 @@ def main():
 
     gps = Garmin(phys)
 
-    print "GPS Product ID: %d Descriptions: %s Software version: %2.2f" % \
-                             (gps.prod_id, gps.prod_descs, gps.soft_ver)
-    print
+    print("GPS Product ID: %d Descriptions: %s Software version: %2.2f" % (gps.prod_id, gps.prod_descs, gps.soft_ver))
+                             
+    print("")
 
     # Show gps information
 
     if 1:
-        print
-        print "GPS Product ID :",gps.prod_id
-        print "GPS version    :",gps.soft_ver
-        print "GPS            :",gps.prod_descs[0]
-        print "MapSource info :",gps.prod_descs[1:]
-        print
-        print "Product protocols:"
-        print "------------------"
+        print("")
+        print("GPS Product ID :"+repr(gps.prod_id))
+        print("GPS version    :"+repr(gps.soft_ver))
+        print("GPS            :"+repr(gps.prod_descs[0]))
+        print("MapSource info :"+repr(gps.prod_descs[1:]))
+        print("")
+        print("Product protocols:")
+        print("------------------")
 
         # Some code from pygarmin, small but smart
 
@@ -2496,36 +2499,36 @@ def main():
             p = gps.protocols[i]
 
             if  p[0] == 'D':
-                print p,
+                print(p)
             else:
                 if i == 0:
-                    print p,
+                    print(p)
                 else:
-                    print
-                    print p,
+                    print("")
+                    print(p)
 
-        print
+        print("")
 
         # print unknown protocols
 
         if len(gps.protocols_unknown):
-            print
-            print "Product protocols who are not supported yet:"
-            print "--------------------------------------------"
+            print()
+            print("Product protocols who are not supported yet:")
+            print("--------------------------------------------")
 
             for i in range(len(gps.protocols_unknown)):
                 p = gps.protocols_unknown[i]
 
                 if  p[0] == 'D':
-                    print p,
+                    print(p)
                 else:
                     if i == 0:
-                        print p,
+                        print(p)
                     else:
-                        print
-                        print p,
+                        print("")
+                        print(p)
 
-            print
+            print("")
 
     # Show waypoints
 
@@ -2535,16 +2538,16 @@ def main():
 
         waypoints = gps.getWaypoints()
 
-        print "Waypoints :"
-        print "-----------"
+        print("Waypoints :")
+        print("-----------")
 
         for x in waypoints:
-            print x
+            print(x)
 
-        print
-        print   "Same waypoints called by a callback function:"
-        print "---------------------------------------------"
-        print
+        print("")
+        print("Same waypoints called by a callback function:")
+        print("---------------------------------------------")
+        print("")
 
         # Same but now with a Callback function
         # Everytime we get a waypoint from the gps the function MyCallbackWaypoints is called
@@ -2570,15 +2573,15 @@ def main():
 
         data3 = {'ident':"CLUB91",'cmnt':"DRINKING",'slat':606532864,'slon':57654672,'smbl':13}
 
-        print "Send waypoints to gps :"
-        print "----------------------"
+        print("Send waypoints to gps :")
+        print("----------------------")
 
         gps.putWaypoints([data1,data2,data3],MyCallbackputWaypoints)
 
         # or gps.putWaypoints([data1,data2]) without a callback function
 
-        print
-        print "Are there 3 waypoints added to your gps ??"
+        print("")
+        print("Are there 3 waypoints added to your gps ??")
 
 
     # Show Routes
@@ -2587,26 +2590,26 @@ def main():
 
         routes = gps.getRoutes()
 
-        print "Routes"
-        print "------"
+        print("Routes")
+        print("------")
 
         for route in routes:
-            print
-            print "Route name :", route[0]
+            print("")
+            print("Route name :"+repr(route[0]))
 
             for point in route[1:]:
 
                 # Ok, Bad way to remove D210_Rte_Link_Type entrys
 
                 if len(point) > 23:
-                    print "   ",point
+                    print("   "+repr(point))
 
         # Now with a callback function
 
-        print
-        print "Same routes but now with a callback function :"
-        print "---------------------------------------------"
-        print
+        print("")
+        print("Same routes but now with a callback function :")
+        print("---------------------------------------------")
+        print("")
 
         gps.getRoutes(MyCallbackgetRoutes)
 
@@ -2643,30 +2646,30 @@ def main():
         data3_2 = {'ident': "TEST03",'slat': 608451909,'slon':46665535}
         data4_2 = {'ident': "TEST04",'slat': 608440119,'slon':46644415}
 
-        print "Send two routes to the gps"
+        print("Send two routes to the gps")
         gps.putRoutes([(header1,data1_1,data2_1),(header2,data1_2,data2_2,data3_2,data4_2)])
-        print "Routes added"
+        print("Routes added")
 
         # Now with a callback function
 
-        print
-        print "Same routes but now with a callback function :"
-        print "---------------------------------------------"
-        print "If you leave the header empty, the computer will generate one for you (ROUTE1,ROUTE2,....)"
+        print("")
+        print("Same routes but now with a callback function :")
+        print("---------------------------------------------")
+        print("If you leave the header empty, the computer will generate one for you (ROUTE1,ROUTE2,....)")
 
         header1 = header2 = {}
 
         gps.putRoutes([(header1,data1_1,data2_1),(header2,data1_2,data2_2,data3_2,data4_2)],MyCallbackputRoutes)
 
-        print
-        print "Four routes are added to your gps, two of them are generated !"
-        print "and a few waypoints"
+        print("")
+        print("Four routes are added to your gps, two of them are generated !")
+        print("and a few waypoints")
 
     # Show Tracks
 
     if 0:
-        print "Tracks"
-        print "------"
+        print("Tracks")
+        print("------")
 
         tracks = gps.getTracks()
 
@@ -2675,29 +2678,29 @@ def main():
             # Check for multiple tracks
 
             if type(track) == list:
-                print
-                print "Track name :",track[0]
+                print("")
+                print("Track name :",+repr(track[0]))
 
                 for point in track[1:]:
-                    print "   ",point
+                    print("   "+repr(point))
             else:
-                print track
+                print(track)
 
         # Now with a callback function
 
-        print
-        print "Same tracks but now with a callback function :"
-        print "---------------------------------------------"
+        print("")
+        print("Same tracks but now with a callback function :")
+        print("---------------------------------------------")
 
         gps.getTracks(MyCallbackgetTracks)
 
     # Send tracks
 
     if 0:
-        print "Sending tracks with a callback function :"
-        print "-----------------------------------------"
-        print "If you leave the header empty, the computer will generate one for you (TRACK1,TRACK2,....)"
-        print "It's possible to send track to the ACTIVE LOG.but you can't send time to tracks"
+        print("Sending tracks with a callback function :")
+        print("-----------------------------------------")
+        print("If you leave the header empty, the computer will generate one for you (TRACK1,TRACK2,....)")
+        print("It's possible to send track to the ACTIVE LOG.but you can't send time to tracks")
 
 
         header1 = {'ident':'TEST TRACK'}
@@ -2720,96 +2723,96 @@ def main():
             gps.putTracks([(data1_1,data2_1,data3_1),
                                                                      (data1_2,data2_2,data3_2,data4_2,data5_2,data6_2)],MyCallbackputTracks)
 
-            print "Track added ?"
+            print("Track added ?")
 
         else:
             gps.putTracks([(header1,data1_1,data2_1,data3_1),
                                                                      (header2,data1_2,data2_2,data3_2,
                                                                       data4_2,data5_2,data6_2)],MyCallbackputTracks)
 
-            print "Two track logs added ?"
+            print("Two track logs added ?")
 
     # Show proximity points
 
     if 0:
-        print "Proximity waypoints:"
-        print "-------------------"
+        print("Proximity waypoints:")
+        print("-------------------")
 
         for proxi in gps.getProxPoints():
-            print proxi
+            print(proxi)
 
     # Send  proximity points
 
     if 0:
-        print "Sending 2 proximity waypoints :"
-        print "-------------------------------"
+        print("Sending 2 proximity waypoints :")
+        print("-------------------------------")
 
         data1 = {'ident':'WATER','slat': 608688816,'slon': 45891108,'dist':300}
         data2 = {'ident':'AERPRT','slat': 607132209,'slon': 53673984,'dist':400}
         gps.putProxPoints([data1,data2])
 
-        print "Check your waypoint and proximity waypoint menu on your gps!"
+        print("Check your waypoint and proximity waypoint menu on your gps!")
 
     # Show almanac
 
     if 0:
-        print "Almanac information:"
-        print "--------------------"
+        print("Almanac information:")
+        print("--------------------")
 
         gps.getAlmanac(MyCallbackgetAlmanac)
 
     # Show FlightBook
 
     if 0:
-        print "FlightBook information:"
-        print "-----------------------"
+        print("FlightBook information:")
+        print("-----------------------")
 
         flightbook = gps.getFlightBook()
 
         for x in flightbook:
-            print x
+            print(x)
 
     # Show date and time
 
     if 0:
-        print "Date and time:"
-        print "--------------"
+        print("Date and time:")
+        print("--------------")
 
         def MyCallbackgetTime(timeInfo,recordnumber,totalPointsToGet,tp):
-            print timeInfo.getDict() # or timeInfo.dataDict
+            print (timeInfo.getDict()) # or timeInfo.dataDict
 
-        print gps.getTime(MyCallbackgetTime)
+        print(gps.getTime(MyCallbackgetTime))
 
     # Show some real-time data
 
     if 0:
-        print "Starting pvt"
-        print "-----------"
+        print("Starting pvt")
+        print("-----------")
 
         gps.pvtOn()
 
         def MyCallbackgetPvt(pvt,recordnumber,totalPointsToGet,tp):
-            print pvt.getDict()
+            print (pvt.getDict())
 
         try:
             for i in range(10):
                 p = gps.getPvt(MyCallbackgetPvt)
-                print p
+                print(p)
 
         finally:
-            print "Stopping pvt"
+            print("Stopping pvt")
             gps.pvtOff()
 
     # Show Lap type info
 
     if 0:
-        print "Lap info"
-        print "--------"
+        print("Lap info")
+        print("--------")
 
         laps = gps.getLaps()
 
         for x in laps:
-            print x
+            print(x)
 
 
 if __name__ == "__main__":

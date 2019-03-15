@@ -6,7 +6,7 @@ Created on Sat Feb 24 23:32:45 2018
 """
 
 import sys
-JBasicPath = "G:/___NewZeland/__Auckland/Python/DataCollectionTool/___JBasics"
+JBasicPath = "I:/Python/___JBasics"
 DecalageHoraire = 0
 sys.path.append(JBasicPath)
 
@@ -50,7 +50,7 @@ DBA_5 = FieldDef("LavS","LAVS","REAL",-999)
 HX_1 = FieldDef("time [s/256]","Time256","REAL",-999)
 HX_2 = FieldDef("breathing_rate [rpm](/api/datatype/33/)","BreathRt","REAL",-999)
 HX_3 = FieldDef("heart_rate [bpm](/api/datatype/19/)","HeartRt","REAL",-999)
-HX_4 = FieldDef("minute_ventilation [mL/min](/api/datatype/36/)","Ventil","REAL",-999)
+HX_4 = FieldDef("minute_ventilation [L/min](/api/datatype/36/)","Ventil","REAL",-999)
 HX_5 = FieldDef("cadence [spm](/api/datatype/53/)","Cadence","REAL",-999)
 HX_6 = FieldDef("activity [g](/api/datatype/49/)","Activity","REAL",-999)
 
@@ -82,12 +82,13 @@ def StructureHx(InPut,Output,Params) :
     ## lecture des lignes et rajout du champ TIME
     Line = File.readline()
     while Line != "" :
-        Data = Line.replace("\n","").split(Sep)
-        T=int(Data[0])/256+(DecalageHoraire*60*60)
-        Data.append(str(T))
-        Data.append(datetime.datetime.fromtimestamp(T).strftime('%Y-%m-%d %H:%M:%S'))
-        NewLine = Sep.join(Data)+'\n'
-        OutFile.write(NewLine)
+        if "nan" not in Line :
+            Data = Line.replace("\n","").split(Sep)
+            T=int(float(Data[0])/256+(DecalageHoraire*60*60))
+            Data.append(str(T))
+            Data.append(datetime.datetime.fromtimestamp(T).strftime('%Y-%m-%d %H:%M:%S'))
+            NewLine = Sep.join(Data)+'\n'
+            OutFile.write(NewLine)
         Line = File.readline()
     OutFile.close()
     File.close()
@@ -113,7 +114,7 @@ def StructureDba(Input,Output,Params) :
         Data = Line.replace("\n","").split(Sep)
         #ajout du TIME en tant que contraction de start date et start time
         if Params["Mode"]=="AN" :
-            Day,Month,Year = Data[0].split("/")
+            Year,Month,Day = Data[0].split("-")
             Hour,Minute,Second = Data[1].split(" ")[0].split(":")
             Moment = Data[1].split(" ")[1]
             LineTime = JDate.Jdatetime(Day=Day,Month=Month,Year=Year,Hour=Hour,Minute=Minute,Second=Second,Moment=Moment)
@@ -231,6 +232,6 @@ Config = {"Tables" : [{"Name":"NO2",
                        },
     ],
     "FitFile" : {"Fields":[FIT_1,FIT_2,FIT_3,FIT_4,FIT_5],
-                 "Decalage":0},
+                 "Decalage":60}, #a donner en minutes
     "JBasicsPath" :JBasicPath,
     }

@@ -1,4 +1,10 @@
-from fitparse.activity import Activity
-from fitparse.exceptions import FitError, FitParseError, FitParseComplete
+from fitparse.base import FitFile, FitParseError
+from fitparse.records import DataMessage
+from fitparse.processors import FitFileDataProcessor, StandardUnitsDataProcessor
 
-__all__ = ['Activity', 'FitError', 'FitParseError', 'FitParseComplete']
+
+__version__ = '1.0.1'
+__all__ = [
+    'FitFileDataProcessor', 'FitFile', 'FitParseError',
+    'StandardUnitsDataProcessor', 'DataMessage'
+]
