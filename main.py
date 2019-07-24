@@ -5,14 +5,15 @@ Created on Wed Mar 07 14:15:16 2018
 @author: GelbJ
 """
 
-Racine = "F:/Datas/_Lyon/A)_FieldData"
+Racine = "E:/Datas/_Montreal 2019/A)_FieldData"
 
 ######################################################
 ### Config Steph
 ######################################################
-#Users = ["ID1_PA"]
-Users=["ID2_EL"]
-#Users=["ID3_VJ"]
+#Users = ["ID1_JR"]
+#Users=["ID2_LN"]
+#Users=["ID3_MS"]
+#Users=["ID4_TA"]
 
 
 Avoid=[]
@@ -33,11 +34,11 @@ for User in Users :
     BD = PollutionBD(Path,Config,Erase=True)
     #nettoyage des CSV
     BD.CleanCSVs()
-    #creation de la BD SQLITE
+#    #creation de la BD SQLITE
     BD.Fill()
-    #Generation des fichiers SHP
-    Avoid = ["ID3_VJ_2019-02-25_TRAJET03",#pas de gps...
-             ]
+##    #Generation des fichiers SHP
+##    Avoid = ["ID3_VJ_2019-02-25_TRAJET03",#pas de gps...
+##             ]
     BD.GenerateShps(Avoid = Avoid)
     BD.EvaluateShps()
     BD.PrepareTimeExcel()

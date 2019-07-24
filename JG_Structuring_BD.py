@@ -65,9 +65,15 @@ class PollutionBD(object) :
         #rajout des champs de la montre
         Fields.extend(self.Config["FitFile"]["Fields"])
         for Table in self.Config["Tables"] :
-            for Field in Table["Fields"] : 
-                if Field.Name!="TIME" and Field.Name!="DATETIME": 
-                    Fields.append(Field)
+            if Table["Recording"] == "SEC" or Table["Recording"] == "MIN" :
+                for Field in Table["Fields"] : 
+                    if Field.Name!="TIME" and Field.Name!="DATETIME": 
+                        Fields.append(Field)
+            elif Table["Recording"] == "INFRASEC" : 
+                for Field in Table["Fields"] : 
+                    if Field.Name!="TIME" and Field.Name!="DATETIME":
+                        Field.Type = "TEXT"
+                        Fields.append(Field)
         #Fields.append(FieldDef("TIME","TIME","REAL",-999))
         Fields.append(FieldDef("DATETIME","DATETIME","TEXT","NAN"))
         return Fields
@@ -157,16 +163,31 @@ class PollutionBD(object) :
             StrFields = ",".join(Fields)
             if Table["Recording"] == "MIN" : 
                 Req = "SELECT "+StrFields+" FROM "+Table["Name"]+" WHERE TIME<"+str(Time+60)+" AND TIME>="+str(Time)
-            elif Table["Recording"] == "SEC" : 
+            elif Table["Recording"] == "SEC" or  Table["Recording"]=="INFRASEC" : 
                 Req = "SELECT "+StrFields+" FROM "+Table["Name"]+" WHERE TIME = "+str(int(Time))
             Rep = Cursor.execute(Req)
-            Datas = Rep.fetchone()
-            if Datas is None :
-                for Field in Table["Fields"] :
-                    Values[Field.Name] = Field.Default
-            else :
-                for Value,Field in zip(Datas,Fields) : 
-                    Values[Field]=Value
+            if Table["Recording"] == "MIN" or Table["Recording"] == "SEC" :
+                Datas = Rep.fetchone()
+                if Datas is None :
+                    for Field in Table["Fields"] :
+                        Values[Field.Name] = Field.Default
+                else :
+                    for Value,Field in zip(Datas,Fields) : 
+                        Values[Field]=Value
+            elif Table["Recording"] == "INFRASEC"  :
+                Datas = Rep.fetchall()
+                if Datas is None : 
+                    for Field in Table["Fields"] :
+                        Values[Field.Name] = ""
+                else : 
+                    OldValues = {Field.Name:[] for Field in Table["Fields"]}
+                    for Data in Datas : 
+                        for Value,Field in zip(Data,Fields) : 
+                            OldValues[Field].append(Value)
+                    #converting to string
+                    for key,value in OldValues.items() : 
+                        Values[key] = str(value).replace("[","").replace("]","")
+                        
         return Values
     
     def GenerateShps(self,Avoid = []) :
@@ -180,6 +201,7 @@ class PollutionBD(object) :
         SpatialRef = osr.SpatialReference()
         SpatialRef.ImportFromEPSG(4326)
         Fields = self.AllFields()
+        print(Fields)
         #iteration sur les fichiers fit
         for File in os.listdir(self.Root) :
             if "." in File :
@@ -191,7 +213,7 @@ class PollutionBD(object) :
                     else : 
                         if os.path.isfile(self.Root+"/Shps/"+Name+".shp") == False : 
                             FitTable = FitToDataTable(self.Root+'/'+File,Config["FitFile"]["Fields"])
-                            Shp = VL.JFastLayer("")
+                            Shp = VL.JFastLayer("")                            
                             Shp.MakeItEmpty({"SpatialRef":SpatialRef,"Fields":[F.Name for F in Fields],"FieldsTypes":[FieldConverter[F.Type] for F in Fields]})
                             #remplissage du shp
                             for Row in FitTable.Iterate(True) :

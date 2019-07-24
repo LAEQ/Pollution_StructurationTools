@@ -6,7 +6,7 @@ Created on Sat Feb 24 23:32:45 2018
 """
 
 import sys
-JBasicPath = "I:/Python/___JBasics"
+JBasicPath = "F:/Python/___JBasics"
 DecalageHoraire = 0
 sys.path.append(JBasicPath)
 
@@ -30,8 +30,13 @@ class FieldDef(object) :
 ## Champs de N02
 #NO2_1 = FieldDef("Date Time","Date","TEXT","NAN")
 NO2_2 = FieldDef(" NO2(ppm)","NO2","REAL",-999)
-NO2_3 = FieldDef(" RH(%)","RH","REAL",-999)
-NO2_4 = FieldDef(" TEMP(C)","TEMP_C","REAL",-999)
+NO2_3 = FieldDef(" RH(%)","RH2","REAL",-999)
+NO2_4 = FieldDef(" TEMP(C)","TEMP_C2","REAL",-999)
+
+##Champs O3
+O3_2 = FieldDef(" O3(ppm)","O3","REAL",-999)
+O3_3 = FieldDef(" RH(%)","RH","REAL",-999)
+O3_4 = FieldDef(" TEMP(C)","TEMP_C","REAL",-999)
 
 ## Champs de PMS
 PMS_1 = FieldDef("Date Time","Date","TEXT","NAN")
@@ -50,7 +55,7 @@ DBA_5 = FieldDef("LavS","LAVS","REAL",-999)
 HX_1 = FieldDef("time [s/256]","Time256","REAL",-999)
 HX_2 = FieldDef("breathing_rate [rpm](/api/datatype/33/)","BreathRt","REAL",-999)
 HX_3 = FieldDef("heart_rate [bpm](/api/datatype/19/)","HeartRt","REAL",-999)
-HX_4 = FieldDef("minute_ventilation [L/min](/api/datatype/36/)","Ventil","REAL",-999)
+HX_4 = FieldDef("minute_ventilation [mL/min](/api/datatype/36/)","Ventil","REAL",-999)
 HX_5 = FieldDef("cadence [spm](/api/datatype/53/)","Cadence","REAL",-999)
 HX_6 = FieldDef("activity [g](/api/datatype/49/)","Activity","REAL",-999)
 
@@ -61,10 +66,49 @@ FIT_3 = FieldDef("position_long","Lon","REAL",-999)
 FIT_4 = FieldDef("speed","Speed","REAL",-999)
 FIT_5 = FieldDef("timestamp","TIME","REAL",-999)
 
+## champ pour le codaxus
+COD_1 = FieldDef("timestamp","TimeStamp","REAL",-999)
+COD_2 = FieldDef("distance","DistCod","REAL",-999)
 
 ###############################################################################
 ## Fonctions de structuration initiales
 ###############################################################################
+
+
+def StructureCod(InPut,Output,Params) : 
+    """
+    Fonction de structuration des fichiers codaxus
+        -Besoin de rajouter les entetes
+        -Besoinde creer un champ datetime propre
+    """
+    Sep = Params["Sep"]
+    File = open(InPut,"r")
+    OutFile = open(Output,"w")
+    OutFile.write("timestamp"+Sep+"distance"+Sep+"TIME"+Sep+"DATETIME\n")
+    Line = File.readline()
+    while Line != "" : 
+        Data = Line.replace("\n","").split(Sep)
+        if len(Data)>1 :
+            if len(Data)>2 : 
+                Data = Data[0:2]
+            #print(Line)
+            try :
+                if Data[1] ==""  : 
+                    Data[1] = "-999"
+                else : 
+                    Data[1] = str(int(Data[1]))
+            except ValueError : 
+                Data[1] = "-999"
+            
+            T = int(float(Data[0]))
+            Data.append(str(T))
+            Data.append(datetime.datetime.fromtimestamp(T).strftime('%Y-%m-%d %H:%M:%S'))
+            NewLine = Sep.join(Data)+"\n"
+            NewLine=NewLine.replace(",,",",")
+            OutFile.write(NewLine)
+        Line = File.readline()
+    File.close()
+    OutFile.close()
 
 def StructureHx(InPut,Output,Params) : 
     """
@@ -115,9 +159,9 @@ def StructureDba(Input,Output,Params) :
         #ajout du TIME en tant que contraction de start date et start time
         if Params["Mode"]=="AN" :
             Year,Month,Day = Data[0].split("-")
-            Hour,Minute,Second = Data[1].split(" ")[0].split(":")
-            Moment = Data[1].split(" ")[1]
-            LineTime = JDate.Jdatetime(Day=Day,Month=Month,Year=Year,Hour=Hour,Minute=Minute,Second=Second,Moment=Moment)
+            Hour,Minute,Second = Data[1].split(":")
+            #Moment = Data[1].split(" ")[1]
+            LineTime = JDate.Jdatetime(Day=Day,Month=Month,Year=Year,Hour=Hour,Minute=Minute,Second=Second)
         elif Params["Mode"]=="FR" : 
             Day,Month,Year = Data[0].split("-")
             Hour,Minute,Second = Data[1].split(":")
@@ -207,6 +251,14 @@ Config = {"Tables" : [{"Name":"NO2",
                        "Mode":"AN", #could be AN or FR
                        "StructFunc" : StructureNO2
                        },
+                        {"Name":"O3",
+                       "Fields":[O3_2,O3_3,O3_4],
+                       "Extension":"O3.csv",
+                       "Sep" : ",",
+                       "Recording" : "MIN",
+                       "Mode":"AN", #could be AN or FR
+                       "StructFunc" : StructureNO2
+                       },
                         {"Name":"PMS",
                        "Fields":[PMS_1,PMS_2,PMS_3],
                        "Extension":"PMS.csv",
@@ -230,8 +282,15 @@ Config = {"Tables" : [{"Name":"NO2",
                        "Recording" : "SEC",
                        "StructFunc" : StructureHx
                        },
+                        {"Name":"COD",
+                       "Fields":[COD_1,COD_2],
+                       "Extension":"COD.txt",
+                       "Sep" : ",",
+                       "Recording" : "INFRASEC",
+                       "StructFunc" : StructureCod
+                       }
     ],
     "FitFile" : {"Fields":[FIT_1,FIT_2,FIT_3,FIT_4,FIT_5],
-                 "Decalage":60}, #a donner en minutes
+                 "Decalage":-4*60}, #a donner en minutes
     "JBasicsPath" :JBasicPath,
     }
